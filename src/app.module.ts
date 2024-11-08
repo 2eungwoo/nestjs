@@ -4,6 +4,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as Joi from 'joi';
 import { MovieModule } from './movie/movie.module';
 import { Movie } from './movie/entities/movie.entity';
+import { MovieDetail } from './movie/entities/movie-detail.entity';
+import { BaseTable } from './common/entity/base-table.entity';
+import { DirectorModule } from './director/director.module';
+import { Director } from './director/entities/director.entity';
 
 @Module({
   imports: [
@@ -28,13 +32,14 @@ import { Movie } from './movie/entities/movie.entity';
           username: configService.get<string>('DB_USERNAME'),
           password: configService.get<string>('DB_PASSWORD'),
           database: configService.get<string>('DB_DATABASE'),
-          entities: [Movie],
+          entities: [Movie, MovieDetail, BaseTable, Director],
           synchronize: true, // 개발할때만 true. 개발 시 싱크 자동 맞추기
         };
       },
       inject: [ConfigService],
     }),
     MovieModule,
+    DirectorModule,
   ],
 })
 export class AppModule {}
