@@ -8,6 +8,8 @@ import { MovieDetail } from './movie/entities/movie-detail.entity';
 import { BaseTable } from './common/entity/base-table.entity';
 import { DirectorModule } from './director/director.module';
 import { Director } from './director/entities/director.entity';
+import { GenreModule } from './genre/genre.module';
+import { Genre } from './genre/entities/genre.entity';
 
 @Module({
   imports: [
@@ -32,7 +34,7 @@ import { Director } from './director/entities/director.entity';
           username: configService.get<string>('DB_USERNAME'),
           password: configService.get<string>('DB_PASSWORD'),
           database: configService.get<string>('DB_DATABASE'),
-          entities: [Movie, MovieDetail, BaseTable, Director],
+          entities: [Movie, MovieDetail, BaseTable, Director, Genre],
           synchronize: true, // 개발할때만 true. 개발 시 싱크 자동 맞추기
         };
       },
@@ -40,6 +42,7 @@ import { Director } from './director/entities/director.entity';
     }),
     MovieModule,
     DirectorModule,
+    GenreModule,
   ],
 })
 export class AppModule {}

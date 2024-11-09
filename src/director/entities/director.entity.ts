@@ -16,6 +16,6 @@ export class Director extends BaseTable {
   @Column()
   nationality: string;
 
-  @OneToMany(() => Movie, (movie) => movie.director, { cascade: true })
+  @OneToMany(() => Movie, (movie) => movie.director)
   movies: Movie[];
 }
