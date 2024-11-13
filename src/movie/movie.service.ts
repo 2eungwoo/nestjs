@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Movie } from './entities/movie.entity';
-import { In, Like, Repository } from 'typeorm';
+import { DataSource, In, Like, Repository, Transaction } from 'typeorm';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { MovieDetail } from './entities/movie-detail.entity';
@@ -22,6 +22,8 @@ export class MovieService {
 
     @InjectRepository(Genre)
     private readonly genreRepository: Repository<Genre>,
+
+    private readonly dataSource: DataSource,
   ) {}
 
   async getManyMovies(title?: string) {
@@ -74,32 +76,48 @@ export class MovieService {
   }
 
   async createMovie(createMovieDto: CreateMovieDto) {
-    const director = await this.directorRepository.findOne({
-      where: {
-        id: createMovieDto.directorId,
-      },
-    });
+    // query runner
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect(); // qr을 db에 연결
+    await qr.startTransaction(); // transaction 실행. 괄호 안에 isolation level 옵션
 
-    if (!director) {
-      throw new NotFoundException('존재하지 않는 감독 ID');
+    // 반드시 try-catch-finally 사용
+    try {
+      const director = await qr.manager.findOne(Director, {
+        where: {
+          id: createMovieDto.directorId,
+        },
+      });
+
+      if (!director) {
+        throw new NotFoundException('존재하지 않는 감독 ID');
+      }
+
+      const genres = await qr.manager.find(Genre, {
+        where: {
+          id: In(createMovieDto.genreIds),
+        },
+      });
+
+      const movie = await qr.manager.save(Movie, {
+        title: createMovieDto.title,
+        movieDetail: {
+          detail: createMovieDto.movieDetail,
+        },
+        director: director,
+        genres: genres,
+      });
+
+      await qr.commitTransaction(); // transaction commit
+
+      return movie; // commit 후에 return
+    } catch (e) {
+      // 에러처리 후 롤백
+      await qr.rollbackTransaction(); // transaction rollback
+      throw e;
+    } finally {
+      await qr.release(); // 커밋했든 롤백했든 db pool에 다시 transaction을 되돌려줘야함(release)
     }
-
-    const genres = await this.genreRepository.find({
-      where: {
-        id: In(createMovieDto.genreIds),
-      },
-    });
-
-    const movie = await this.movieRepository.save({
-      title: createMovieDto.title,
-      movieDetail: {
-        detail: createMovieDto.movieDetail,
-      },
-      director: director,
-      genres: genres,
-    });
-
-    return movie;
   }
 
   async updateMovie(id: number, updateMovieDto: UpdateMovieDto) {

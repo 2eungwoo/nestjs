@@ -58,6 +58,17 @@ export class GenreService {
   }
 
   async remove(id: number) {
-    return await this.genreRepository.delete(id);
+    const target = await this.genreRepository.findOne({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!target) {
+      throw new NotFoundException('없는 대상');
+    }
+
+    await this.genreRepository.delete(id);
+    return target;
   }
 }
