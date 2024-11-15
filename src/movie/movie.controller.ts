@@ -1,24 +1,21 @@
-import { Controller, Get, NotFoundException, Param, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  ParseIntPipe,
+  Query,
+} from '@nestjs/common';
 import { MovieService } from './movie.service';
-import { NotFoundError } from "rxjs";
+import { NotFoundError } from 'rxjs';
+import { MovieTitleValidationPipe } from './pipe/movie-title-validation';
 
 @Controller('movie')
 export class MovieController {
-  constructor(private readonly movieService: MovieService) { }
+  constructor(private readonly movieService: MovieService) {}
 
-  @Get(':id')
-  getMovie(
-    @Param(
-      'id',
-      new ParseIntPipe({
-        exceptionFactory(e) {
-          throw new NotFoundException();
-        },
-      }),
-    )
-    id: number,
-  ) {
-    // return this.movieService.findMovie(id);
-    return null;
+  @Get()
+  getMovie(@Query('title', MovieTitleValidationPipe) title?: string) {
+    return this.movieService.getManyMovies(title);
   }
 }
