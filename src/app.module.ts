@@ -21,6 +21,7 @@ import { AuthModule } from './auth/auth.module';
 import { BearerTokenMiddleware } from './auth/middleware/bearer-token.middleware';
 import { CustomAuthGuard } from './auth/guard/auth.guard';
 import { APP_GUARD } from '@nestjs/core';
+import { CustomRBACGuard } from './auth/guard/rbac.guard';
 
 @Module({
   imports: [
@@ -65,6 +66,11 @@ import { APP_GUARD } from '@nestjs/core';
       provide: APP_GUARD,
       useClass: CustomAuthGuard,
     },
+    {
+      // CustomAuthGuard 밑에다가 달아주기 (AuthGuard 다음으로 걸릴 가드)
+      provide: APP_GUARD,
+      useClass: CustomRBACGuard,
+    },
   ],
 })
 export class AppModule implements NestModule {
@@ -73,11 +79,11 @@ export class AppModule implements NestModule {
       .apply(BearerTokenMiddleware)
       .exclude(
         {
-          path: 'auth/login',
+          path: '/auth/login',
           method: RequestMethod.POST,
         },
         {
-          path: 'auth/register',
+          path: '/auth/register',
           method: RequestMethod.POST,
         },
       )

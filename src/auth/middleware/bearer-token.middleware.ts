@@ -48,10 +48,14 @@ export class BearerTokenMiddleware implements NestMiddleware {
       // 이런 문법이 있네. payload.type이 'refresh'인 경우 할당
       // const isRefreshToken = payload.type === 'refresh';
 
+      console.log('미들웨어 호출');
       req.user = payload;
       next(); // request.user에 payload 주고 다음 미들웨어로.
     } catch (e) {
       console.log(`================ token error : ${e}`);
+      if (e.name === 'TokenExpiredError') {
+        throw new UnauthorizedException('토큰이 만료됐습니다');
+      }
       //throw new UnauthorizedException('토큰이 만료되었습니다.');
       next();
     }

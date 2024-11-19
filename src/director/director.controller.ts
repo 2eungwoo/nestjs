@@ -10,6 +10,8 @@ import {
 import { DirectorService } from './director.service';
 import { CreateDirectorDto } from './dto/create-director.dto';
 import { UpdateDirectorDto } from './dto/update-director.dto';
+import { CustomRBAC } from 'src/auth/decorator/rabc.decorator';
+import { Role } from 'src/users/entities/user.entity';
 
 @Controller('director')
 export class DirectorController {
@@ -31,6 +33,7 @@ export class DirectorController {
   }
 
   @Patch(':id')
+  @CustomRBAC(Role.admin)
   update(
     @Param('id') id: string,
     @Body() updateDirectorDto: UpdateDirectorDto,
@@ -39,6 +42,7 @@ export class DirectorController {
   }
 
   @Delete(':id')
+  @CustomRBAC(Role.admin)
   remove(@Param('id') id: string) {
     return this.directorService.remove(+id);
   }

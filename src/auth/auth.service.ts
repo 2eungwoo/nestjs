@@ -110,6 +110,7 @@ export default class AuthService {
     await this.userRepository.save({
       email: email,
       password: hashedPassword,
+      //role: Role.user,
     });
 
     console.log(`register method called`);
