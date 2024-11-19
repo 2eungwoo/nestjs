@@ -1,15 +1,19 @@
 import {
   ClassSerializerInterceptor,
   Controller,
+  Get,
   Headers,
   Post,
   Request,
+  SetMetadata,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import AuthService from './auth.service';
 import { LocalAuthGuard } from './strategy/local.strategy';
 import { JwtAuthGuard } from './strategy/jwt.strategy';
+import { CustomAuthGuard } from './guard/auth.guard';
+import { CustomPublicDecorator } from './decorator/public.decorator';
 
 @Controller('/auth')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -44,12 +48,37 @@ export class AuthController {
     return req.user;
   }
 
-  @Post('/reissue')
-  async reissueAccessToken(@Headers('authorization') token: string) {
-    const payload = await this.authService.parseBearerToken(token, true);
+  // @Post('/reissue')
+  // async reissueAccessToken(@Headers('authorization') token: string) {
+  //   const payload = await this.authService.parseBearerToken(token, true);
 
+  //   return {
+  //     accessToken: await this.authService.issueToken(payload, false),
+  //   };
+  // }
+  @Post('/reissue')
+  async reissueAccessToken(@Request() req) {
     return {
-      accessToken: await this.authService.issueToken(payload, false),
+      accessToken: await this.authService.issueToken(req.user, false),
     };
+  }
+
+  @Get('/guard-pass')
+  @UseGuards(CustomAuthGuard)
+  async guardPassTest() {
+    return 'guard-pass';
+  }
+
+  @Get('/guard-fail')
+  @UseGuards(CustomAuthGuard)
+  async guardFailTest() {
+    return 'guard-fail';
+  }
+
+  @Get('/public')
+  @CustomPublicDecorator()
+  @SetMetadata('isPublic', true)
+  async getPublicByCustomDecorator() {
+    return 'success';
   }
 }

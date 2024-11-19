@@ -33,7 +33,9 @@ export class MovieService {
       .leftJoinAndSelect('movie.genres', 'genres');
 
     if (title) {
-      qb.where('movie.title LIKE :title', { title: `%${title}%` });
+      qb.where('movie.title LIKE :title', {
+        title: `%${title}%`,
+      });
     }
 
     return await qb.getManyAndCount();

@@ -64,7 +64,9 @@ export default class AuthService {
     try {
       // token 검증. payload 가져오면서 검증하는 메서드(verifyAsync())
       const payload = await this.jwtService.verifyAsync(token, {
-        secret: this.configService.get<string>('REFRESH_TOKEN_SECRET'),
+        secret: this.configService.get<string>(
+          isRefreshToken ? 'REFRESH_TOKEN_SECRET' : 'ACCESS_TOKEN_SECRET',
+        ),
       });
 
       if (isRefreshToken) {

@@ -40,7 +40,9 @@ export class CreatedDataDto {
   id: number;
 
   @IsNotEmpty()
-  @Validate(CustomValidator, { message: '다른 메세지 전달 가능 $value' })
+  @Validate(CustomValidator, {
+    message: '다른 메세지 전달 가능 $value',
+  })
   //@IsDatastringyesValid({ message: '다른메세지' })
   datastringyes: string;
 }

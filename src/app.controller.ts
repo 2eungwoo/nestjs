@@ -58,6 +58,7 @@ export class AppController {
       throw new NotFoundException('Data not found'); // Corrected error message for clarity
     }
 
+    console.log(`GET /user/:id method called`);
     return data;
   }
 

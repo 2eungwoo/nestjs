@@ -15,7 +15,10 @@ export class MovieController {
   constructor(private readonly movieService: MovieService) {}
 
   @Get()
-  getMovie(@Query('title', MovieTitleValidationPipe) title?: string) {
+  getMovie(
+    @Query('title', MovieTitleValidationPipe)
+    title?: string,
+  ) {
     return this.movieService.getManyMovies(title);
   }
 }
