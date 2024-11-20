@@ -61,6 +61,7 @@ export class AuthController {
   //   };
   // }
   @Post('/reissue')
+  @CustomPublicDecorator(true)
   async reissueAccessToken(@Request() req) {
     return {
       accessToken: await this.authService.issueToken(req.user, false),

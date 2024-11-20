@@ -30,7 +30,7 @@ export class CustomAuthGuard implements CanActivate {
     if (!request.user || request.user.type !== 'access') {
       // user가 없거나 access토큰이 아니면,
       console.log('auth guard 막힘. 로그인 해서 엑세스 토큰 집어넣어주셈');
-      console.log(`request.user.type : ${request.user}`);
+      console.log(`request.user.type : ${request.user.type}`);
       return false; // 가드 막히게 return false
     }
 
