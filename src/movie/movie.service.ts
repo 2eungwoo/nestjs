@@ -43,21 +43,14 @@ export class MovieService {
   }
 
   async findAllWithPagination(dto: GetMoviesDto) {
-    const { title, take, page } = dto;
+    const { title } = dto;
 
     const qb = await this.movieRepository
       .createQueryBuilder('movie')
       .leftJoinAndSelect('movie.director', 'director')
       .leftJoinAndSelect('movie.genres', 'genres');
 
-    // optional이니까 존재여부 체크해서 있을 경우 적용
-    // if (take && page) {
-    //   qb.take(take);
-    //   qb.skip((page - 1) * take);
-    // }
-    if (take && page) {
-      this.commonService.applyPagePaginationParamsToQb(qb, dto);
-    }
+    this.commonService.applyCursorPaginationParamsToQb(qb, dto);
 
     // optional이니까 존재여부 체크해서 있을 경우 적용
     if (title) {
@@ -67,18 +60,6 @@ export class MovieService {
     }
 
     return await qb.getManyAndCount();
-    // if (!title) {
-    //   return await this.movieRepository.find({
-    //     relations: ['movieDetail', 'genres'],
-    //   });
-    // }
-
-    // return await this.movieRepository.findAndCount({
-    //   where: {
-    //     title: Like(`%${title}%`),
-    //   },
-    //   relations: ['movieDetail', 'genres'],
-    // });
   }
 
   async getMovieId(id: number) {
