@@ -7,6 +7,8 @@ import { UpdateMovieDto } from './dto/update-movie.dto';
 import { MovieDetail } from './entities/movie-detail.entity';
 import { Director } from 'src/director/entities/director.entity';
 import { Genre } from 'src/genre/entities/genre.entity';
+import { GetMoviesDto } from './dto/get-movies.dto';
+import { CommonService } from 'src/common/Common.service';
 
 @Injectable()
 export class MovieService {
@@ -23,15 +25,41 @@ export class MovieService {
     @InjectRepository(Genre)
     private readonly genreRepository: Repository<Genre>,
 
+    private readonly commonService: CommonService,
     private readonly dataSource: DataSource,
   ) {}
 
-  async getManyMovies(title?: string) {
+  async findAll(title?: string) {
     const qb = await this.movieRepository
       .createQueryBuilder('movie')
       .leftJoinAndSelect('movie.director', 'director')
       .leftJoinAndSelect('movie.genres', 'genres');
 
+    if (title) {
+      qb.where('movie.title LIKE :title', {
+        title: `%${title}%`,
+      });
+    }
+  }
+
+  async findAllWithPagination(dto: GetMoviesDto) {
+    const { title, take, page } = dto;
+
+    const qb = await this.movieRepository
+      .createQueryBuilder('movie')
+      .leftJoinAndSelect('movie.director', 'director')
+      .leftJoinAndSelect('movie.genres', 'genres');
+
+    // optional이니까 존재여부 체크해서 있을 경우 적용
+    // if (take && page) {
+    //   qb.take(take);
+    //   qb.skip((page - 1) * take);
+    // }
+    if (take && page) {
+      this.commonService.applyPagePaginationParamsToQb(qb, dto);
+    }
+
+    // optional이니까 존재여부 체크해서 있을 경우 적용
     if (title) {
       qb.where('movie.title LIKE :title', {
         title: `%${title}%`,

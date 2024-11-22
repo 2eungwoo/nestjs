@@ -8,6 +8,9 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
+      transformOptions: {
+        enableImplicitConversion: true, // -> class에서 입력하는 타입 기반으로 형 변환해줌
+      },
     }),
   );
   await app.listen(3000);
