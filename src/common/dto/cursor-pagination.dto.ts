@@ -1,14 +1,18 @@
-import { IsIn, IsInt, IsOptional } from 'class-validator';
+import { IsArray, IsInt, IsOptional, IsString } from 'class-validator';
 
 export class CursorPaginatioDto {
-  // id를 기반으로만 한다고 일단 가정
-  @IsInt()
+  @IsString()
   @IsOptional()
-  id?: number;
+  // id_52, likeCounts_20
+  cursor?: string;
 
-  @IsIn(['ASC', 'DESC']) // 'asc', 'desc'만 올 수 있고,
+  @IsArray()
+  @IsString({
+    each: true,
+  })
   @IsOptional()
-  order: 'ASC' | 'DESC' = 'DESC'; // default = 'desc'
+  // [id_ASC, id_DESC], default = ['id_DESC']
+  order: string[] = ['id_DESC']; // postman에서 실험할때 Params key에 order[] 이렇게 주면 됨
 
   @IsInt()
   @IsOptional()

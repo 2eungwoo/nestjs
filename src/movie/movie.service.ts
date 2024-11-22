@@ -40,6 +40,9 @@ export class MovieService {
         title: `%${title}%`,
       });
     }
+
+    const [result, total] = await qb.getManyAndCount();
+    return { result, total };
   }
 
   async findAllWithPagination(dto: GetMoviesDto) {
@@ -50,8 +53,6 @@ export class MovieService {
       .leftJoinAndSelect('movie.director', 'director')
       .leftJoinAndSelect('movie.genres', 'genres');
 
-    this.commonService.applyCursorPaginationParamsToQb(qb, dto);
-
     // optional이니까 존재여부 체크해서 있을 경우 적용
     if (title) {
       qb.where('movie.title LIKE :title', {
@@ -59,7 +60,11 @@ export class MovieService {
       });
     }
 
-    return await qb.getManyAndCount();
+    const { nextCursor } =
+      await this.commonService.applyCursorPaginationParamsToQb(qb, dto);
+
+    const [data, count] = await qb.getManyAndCount();
+    return { data, count, nextCursor };
   }
 
   async getMovieId(id: number) {
