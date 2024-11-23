@@ -2,7 +2,6 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { SelectQueryBuilder } from 'typeorm';
 import { PagePaginationDto } from './dto/page-pagination.dto';
 import { CursorPaginatioDto } from './dto/cursor-pagination.dto';
-import { stringify } from 'querystring';
 
 @Injectable()
 export class CommonService {
@@ -24,7 +23,11 @@ export class CommonService {
     qb: SelectQueryBuilder<T>,
     dto: CursorPaginatioDto,
   ) {
-    let { cursor, order, take } = dto;
+    //    let { cursor, order, take } = dto;
+    const { cursor, take } = dto;
+    let { order } = dto;
+    console.log(`cursor : ${cursor}, take: ${take}`);
+    console.log(`order : ${order}`);
 
     if (cursor) {
       const decodedCursor = Buffer.from(cursor, 'base64').toString('utf-8');

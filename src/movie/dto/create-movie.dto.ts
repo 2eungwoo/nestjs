@@ -7,7 +7,7 @@ import {
 } from 'class-validator';
 
 export class CreateMovieDto {
-  @IsEmpty()
+  @IsNotEmpty()
   title: string;
 
   @IsArray()

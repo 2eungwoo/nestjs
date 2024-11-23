@@ -20,8 +20,9 @@ import { User } from './users/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { BearerTokenMiddleware } from './auth/middleware/bearer-token.middleware';
 import { CustomAuthGuard } from './auth/guard/auth.guard';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { CustomRBACGuard } from './auth/guard/rbac.guard';
+import { ResponseTimeInterceptor } from './common/interceptor/response-time.interceptor';
 
 @Module({
   imports: [
@@ -70,6 +71,10 @@ import { CustomRBACGuard } from './auth/guard/rbac.guard';
       // CustomAuthGuard 밑에다가 달아주기 (AuthGuard 다음으로 걸릴 가드)
       provide: APP_GUARD,
       useClass: CustomRBACGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ResponseTimeInterceptor,
     },
   ],
 })

@@ -1,7 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Movie } from './entities/movie.entity';
-import { DataSource, In, Like, Repository, Transaction } from 'typeorm';
+import {
+  DataSource,
+  In,
+  Like,
+  QueryRunner,
+  Repository,
+  Transaction,
+} from 'typeorm';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
 import { MovieDetail } from './entities/movie-detail.entity';
@@ -91,49 +98,33 @@ export class MovieService {
     // return movie;
   }
 
-  async createMovie(createMovieDto: CreateMovieDto) {
-    // query runner
-    const qr = this.dataSource.createQueryRunner();
-    await qr.connect(); // qr을 db에 연결
-    await qr.startTransaction(); // transaction 실행. 괄호 안에 isolation level 옵션
+  async createMovie(createMovieDto: CreateMovieDto, qr: QueryRunner) {
+    const director = await qr.manager.findOne(Director, {
+      where: {
+        id: createMovieDto.directorId,
+      },
+    });
 
-    // 반드시 try-catch-finally 사용
-    try {
-      const director = await qr.manager.findOne(Director, {
-        where: {
-          id: createMovieDto.directorId,
-        },
-      });
-
-      if (!director) {
-        throw new NotFoundException('존재하지 않는 감독 ID');
-      }
-
-      const genres = await qr.manager.find(Genre, {
-        where: {
-          id: In(createMovieDto.genreIds),
-        },
-      });
-
-      const movie = await qr.manager.save(Movie, {
-        title: createMovieDto.title,
-        movieDetail: {
-          detail: createMovieDto.movieDetail,
-        },
-        director: director,
-        genres: genres,
-      });
-
-      await qr.commitTransaction(); // transaction commit
-
-      return movie; // commit 후에 return
-    } catch (e) {
-      // 에러처리 후 롤백
-      await qr.rollbackTransaction(); // transaction rollback
-      throw e;
-    } finally {
-      await qr.release(); // 커밋했든 롤백했든 db pool에 다시 transaction을 되돌려줘야함(release)
+    if (!director) {
+      throw new NotFoundException('존재하지 않는 감독 ID');
     }
+
+    const genres = await qr.manager.find(Genre, {
+      where: {
+        id: In(createMovieDto.genreIds),
+      },
+    });
+
+    const newMovie = await qr.manager.save(Movie, {
+      title: createMovieDto.title,
+      movieDetail: {
+        detail: createMovieDto.movieDetail,
+      },
+      director: director,
+      genres: genres,
+    });
+
+    return newMovie;
   }
 
   async updateMovie(id: number, updateMovieDto: UpdateMovieDto) {

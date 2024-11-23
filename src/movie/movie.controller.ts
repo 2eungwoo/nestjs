@@ -1,9 +1,22 @@
-import { Controller, Get, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Post,
+  Query,
+  Request,
+  UseInterceptors,
+} from '@nestjs/common';
 import { MovieService } from './movie.service';
 import { MovieTitleValidationPipe } from './pipe/movie-title-validation';
 import { CustomPublicDecorator } from 'src/auth/decorator/public.decorator';
 import { GetMoviesDto } from './dto/get-movies.dto';
 import { CreateMovieDto } from './dto/create-movie.dto';
+import { CacheInterceptor } from 'src/common/interceptor/cach-interceptor';
+import { TransactionInterceptor } from 'src/common/interceptor/transaction-interceptor';
 
 @Controller('movie')
 export class MovieController {
@@ -11,6 +24,7 @@ export class MovieController {
 
   @Get()
   @CustomPublicDecorator()
+  @UseInterceptors(CacheInterceptor)
   getMovie(
     @Query('title', MovieTitleValidationPipe)
     title?: string,
@@ -24,7 +38,13 @@ export class MovieController {
   }
 
   @Post()
-  createMovie(dto: CreateMovieDto) {
-    return this.movieService.createMovie(dto);
+  @UseInterceptors(TransactionInterceptor)
+  createMovie(@Body() dto: CreateMovieDto, @Request() req) {
+    return this.movieService.createMovie(dto, req.queryRunner);
+  }
+
+  @Delete(':id')
+  deleteMovie(@Param('id', ParseIntPipe) id: number) {
+    return this.movieService.deleteMovie(id);
   }
 }
