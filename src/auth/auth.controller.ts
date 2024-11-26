@@ -16,6 +16,7 @@ import { CustomAuthGuard } from './guard/auth.guard';
 import { CustomPublicDecorator } from './decorator/public.decorator';
 import { CustomRBAC } from './decorator/rabc.decorator';
 import { Role } from 'src/users/entities/user.entity';
+import { CustomRBACGuard } from './guard/rbac.guard';
 
 @Controller('/auth')
 @UseInterceptors(ClassSerializerInterceptor)

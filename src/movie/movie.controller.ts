@@ -8,6 +8,7 @@ import {
   Post,
   Query,
   Request,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { MovieService } from './movie.service';
@@ -17,6 +18,9 @@ import { GetMoviesDto } from './dto/get-movies.dto';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { CacheInterceptor } from 'src/common/interceptor/cach-interceptor';
 import { TransactionInterceptor } from 'src/common/interceptor/transaction-interceptor';
+import { CustomRBACGuard } from 'src/auth/guard/rbac.guard';
+import { CustomRBAC } from 'src/auth/decorator/rabc.decorator';
+import { Role } from 'src/users/entities/user.entity';
 
 @Controller('movie')
 export class MovieController {
@@ -44,6 +48,7 @@ export class MovieController {
   }
 
   @Delete(':id')
+  @CustomRBAC(Role.admin)
   deleteMovie(@Param('id', ParseIntPipe) id: number) {
     return this.movieService.deleteMovie(id);
   }

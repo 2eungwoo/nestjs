@@ -16,6 +16,7 @@ import { Director } from 'src/director/entities/director.entity';
 import { Genre } from 'src/genre/entities/genre.entity';
 import { GetMoviesDto } from './dto/get-movies.dto';
 import { CommonService } from 'src/common/Common.service';
+import { NotFoundFilter } from 'src/common/filter/notfound.filter';
 
 @Injectable()
 export class MovieService {
