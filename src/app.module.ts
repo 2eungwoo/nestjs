@@ -23,6 +23,7 @@ import { CustomAuthGuard } from './auth/guard/auth.guard';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { CustomRBACGuard } from './auth/guard/rbac.guard';
 import { ResponseTimeInterceptor } from './common/interceptor/response-time.interceptor';
+import {envVariableKeys} from './common/const/env.const';
 
 @Module({
   imports: [
@@ -44,12 +45,12 @@ import { ResponseTimeInterceptor } from './common/interceptor/response-time.inte
     TypeOrmModule.forRootAsync({
       useFactory: (configService: ConfigService) => {
         return {
-          type: configService.get<string>('DB_TYPE') as 'postgres',
-          host: configService.get<string>('DB_HOST'),
-          port: configService.get<number>('DB_PORT'),
-          username: configService.get<string>('DB_USERNAME'),
-          password: configService.get<string>('DB_PASSWORD'),
-          database: configService.get<string>('DB_DATABASE'),
+          type: configService.get<string>(envVariableKeys.dbType) as 'postgres',
+          host: configService.get<string>(envVariableKeys.dbHost),
+          port: configService.get<number>(envVariableKeys.dbPort),
+          username: configService.get<string>(envVariableKeys.dbUsername),
+          password: configService.get<string>(envVariableKeys.dbPassword),
+          database: configService.get<string>(envVariableKeys.dbDatabase),
           entities: [Movie, MovieDetail, BaseTable, Director, Genre, User],
           synchronize: true, // 개발할때만 true. 개발 시 싱크 자동 맞추기
         };
