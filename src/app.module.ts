@@ -27,6 +27,8 @@ import { envVariableKeys } from './common/const/env.const';
 import { ForbiddenExceptionFilter } from './common/filter/forbidden.filter';
 import { NotFoundFilter } from './common/filter/notfound.filter';
 import { QueryFailedExceptionFilter } from './common/filter/query-failed.filter';
+import { ArticleModule } from './article/module/article.module';
+import { CommentModule } from './comment/comment.module';
 
 
 @Module({
@@ -66,6 +68,8 @@ import { QueryFailedExceptionFilter } from './common/filter/query-failed.filter'
     GenreModule,
     UsersModule,
     AuthModule,
+    ArticleModule,
+    CommentModule,
   ],
   providers: [
     {
