@@ -2,25 +2,24 @@ import {
   ArgumentsHost,
   Catch,
   ExceptionFilter,
-  NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 
-@Catch(NotFoundException)
-export class NotFoundFilter implements ExceptionFilter {
+@Catch(ForbiddenException)
+export class UnauthorizedFilter implements ExceptionFilter {
   catch(exception: any, host: ArgumentsHost) {
     const context = host.switchToHttp();
     const req = context.getRequest();
     const res = context.getResponse();
 
     const status = exception.getStatus();
-
-    console.log('404 not found filter called');
+    console.log('UnauthorizedException custom filter called');
     res.status(status).json({
       // 여기서 에러 응답 body를 커스텀 할수 있다.
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: req.url,
-      message: `404 대상을 찾을 수 없습니다.`,
+      message: 'UnauthorizedException. 권한이 없습니다.',
     });
   }
 }

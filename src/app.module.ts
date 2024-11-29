@@ -31,6 +31,7 @@ import { ArticleModule } from './article/module/article.module';
 import { CommentModule } from './comment/comment.module';
 import { Article } from './article/entities/article.entity';
 import { Comment } from './comment/entities/comment.entity';
+import { UnauthorizedFilter } from './common/filter/unauthorized.filter';
 
 @Module({
   imports: [
@@ -102,6 +103,10 @@ import { Comment } from './comment/entities/comment.entity';
     {
       provide: APP_FILTER,
       useClass: NotFoundFilter,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: UnauthorizedFilter,
     },
     {
       provide: APP_FILTER,

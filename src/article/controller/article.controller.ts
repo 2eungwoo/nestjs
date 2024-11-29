@@ -10,12 +10,14 @@ import {
 import { CreateArticleDto } from '../dto/create-article.dto';
 import { ArticleService } from '../service/article.service';
 import { CustomPublicDecorator } from 'src/auth/decorator/public.decorator';
+import { CustomRBAC } from 'src/auth/decorator/rabc.decorator';
+import { Role } from 'src/users/entities/user.entity';
 @Controller('article')
 export class ArticleController {
   constructor(private readonly articleService: ArticleService) {}
 
   @Post()
-  @CustomPublicDecorator()
+  @CustomRBAC(Role.admin)
   async createArticle(
     @Body() createArticleDto: CreateArticleDto,
     @Request() req,
