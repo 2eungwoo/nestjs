@@ -1,37 +1,44 @@
-import { Injectable } from '@nestjs/common';
-import { CreateArticleDto } from '../dto/create-article.dto';
-import { UpdateArticleDto } from '../dto/update-article.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Article } from '../entities/article.entity';
 import { Repository } from 'typeorm';
+import { Article } from '../entities/article.entity';
+import { Comment } from 'src/comment/entities/comment.entity';
+import { CreateArticleDto } from '../dto/create-article.dto';
 
 @Injectable()
 export class ArticleService {
   constructor(
     @InjectRepository(Article)
-    private readonly articleRepository: Repository<Article>,
+    private articleRepository: Repository<Article>,
+    @InjectRepository(Comment)
+    private commentRepository: Repository<Comment>,
+  ) {}
 
-  ) {
+  // 게시글과 댓글을 함께 조회 (단방향 관계)
+  async findArticleWithComments(articleId: number) {
+    const article = await this.articleRepository.findOne({
+      where: { id: articleId },
+    });
 
+    if (!article) {
+      throw new NotFoundException();
+    }
+
+    // 2. 쿼리 빌더를 사용하여 댓글 조회
+    const comments = await this.commentRepository
+      .createQueryBuilder('comment')
+      .where('comment.articleId = :articleId', { articleId })
+      .getMany();
+
+    // 3. 댓글을 article 객체에 추가
+    article['comments'] = comments;
+
+    return article;
   }
-  createArticle(createArticleDto: CreateArticleDto
-  ) {
-    return 'This action adds a new article';
-  }
 
-  findAll() {
-    return `This action returns all article`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} article`;
-  }
-
-  update(id: number, updateArticleDto: UpdateArticleDto) {
-    return `This action updates a #${id} article`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} article`;
+  // 게시글 생성
+  async createArticle(createArticleDto: CreateArticleDto) {
+    const article = await this.articleRepository.create(createArticleDto);
+    return this.articleRepository.save(article);
   }
 }

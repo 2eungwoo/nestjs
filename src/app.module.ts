@@ -29,7 +29,8 @@ import { NotFoundFilter } from './common/filter/notfound.filter';
 import { QueryFailedExceptionFilter } from './common/filter/query-failed.filter';
 import { ArticleModule } from './article/module/article.module';
 import { CommentModule } from './comment/comment.module';
-
+import { Article } from './article/entities/article.entity';
+import { Comment } from './comment/entities/comment.entity';
 
 @Module({
   imports: [
@@ -57,7 +58,16 @@ import { CommentModule } from './comment/comment.module';
           username: configService.get<string>(envVariableKeys.dbUsername),
           password: configService.get<string>(envVariableKeys.dbPassword),
           database: configService.get<string>(envVariableKeys.dbDatabase),
-          entities: [Movie, MovieDetail, BaseTable, Director, Genre, User],
+          entities: [
+            Movie,
+            MovieDetail,
+            BaseTable,
+            Director,
+            Genre,
+            User,
+            Article,
+            Comment,
+          ],
           synchronize: true, // 개발할때만 true. 개발 시 싱크 자동 맞추기
         };
       },
