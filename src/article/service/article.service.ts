@@ -4,18 +4,24 @@ import { QueryRunner, Repository } from 'typeorm';
 import { Article } from '../entities/article.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { CreateArticleDto } from '../dto/create-article.dto';
+import { ArticleResponseDto } from '../dto/article.response.dto';
+import { CommentResponseDto } from 'src/comment/dto/comment-response.dto';
+import { PagePaginationDto } from 'src/common/dto/page-pagination.dto';
+import { CommonService } from 'src/common/Common.service';
 
 @Injectable()
 export class ArticleService {
   constructor(
     @InjectRepository(Article)
-    private articleRepository: Repository<Article>,
+    private readonly articleRepository: Repository<Article>,
     @InjectRepository(Comment)
-    private commentRepository: Repository<Comment>,
+    private readonly commentRepository: Repository<Comment>,
+
+    private readonly commonService: CommonService,
   ) { }
 
   /*
-    게시글과 댓글 조회(단방향 관계)
+    게시글 단건 조회
   */
   async findArticleWithComments(articleId: number) {
     const article = await this.articleRepository.findOne({
@@ -26,16 +32,40 @@ export class ArticleService {
       throw new NotFoundException();
     }
 
-    // 2. 쿼리 빌더를 사용하여 댓글 조회
     const comments = await this.commentRepository
       .createQueryBuilder('comment')
       .where('comment.articleId = :articleId', { articleId })
       .getMany();
 
-    // 3. 댓글을 article 객체에 추가
+    // comment entity list -> dto list
+    const commentsResponseDto = comments.map(comment => new CommentResponseDto(comment));
+
+    // assign comment to article entity
     article['comments'] = comments;
 
-    return article;
+    return { article, commentsResponseDto };
+  }
+
+  /*
+    게시글 목록 조회 Page Based Pagination
+  */
+  async findAllArticles(paginationDto: PagePaginationDto, qr: QueryRunner) {
+
+    const { page, take } = paginationDto;
+
+    // 기본값 설정 (값이 없을 경우 기본값 사용)
+    const pageNumber = page || 1;
+    const pageSize = take || 20;
+
+    // QueryBuilder 사용하여 게시글 목록 조회
+    const qb = qr.manager
+      .createQueryBuilder(Article, 'article')
+
+    if (take && page) {
+      this.commonService.applyPagePaginationParamsToQb(qb, paginationDto);
+    }
+
+    return qb.getManyAndCount();
   }
 
   /*
@@ -47,7 +77,7 @@ export class ArticleService {
       content: createArticleDto.content
     })
 
-    return newArticle;
+    return new ArticleResponseDto(newArticle, []);
     // const article = await this.articleRepository.create(createArticleDto);
     // return this.articleRepository.save(article);
   }
