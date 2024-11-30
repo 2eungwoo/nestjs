@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryRunner, Repository } from 'typeorm';
 import { Article } from '../entities/article.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
 import { CreateArticleDto } from '../dto/create-article.dto';
@@ -12,9 +12,11 @@ export class ArticleService {
     private articleRepository: Repository<Article>,
     @InjectRepository(Comment)
     private commentRepository: Repository<Comment>,
-  ) {}
+  ) { }
 
-  // 게시글과 댓글을 함께 조회 (단방향 관계)
+  /*
+    게시글과 댓글 조회(단방향 관계)
+  */
   async findArticleWithComments(articleId: number) {
     const article = await this.articleRepository.findOne({
       where: { id: articleId },
@@ -36,9 +38,17 @@ export class ArticleService {
     return article;
   }
 
-  // 게시글 생성
-  async createArticle(createArticleDto: CreateArticleDto) {
-    const article = await this.articleRepository.create(createArticleDto);
-    return this.articleRepository.save(article);
+  /*
+    게시글 생성
+  */
+  async createArticle(createArticleDto: CreateArticleDto, qr: QueryRunner) {
+    const newArticle = await qr.manager.save(Article, {
+      title: createArticleDto.title,
+      content: createArticleDto.content
+    })
+
+    return newArticle;
+    // const article = await this.articleRepository.create(createArticleDto);
+    // return this.articleRepository.save(article);
   }
 }
