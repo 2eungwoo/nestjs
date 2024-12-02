@@ -14,9 +14,9 @@ import { UpdateMovieDto } from './dto/update-movie.dto';
 import { MovieDetail } from './entities/movie-detail.entity';
 import { Director } from 'src/director/entities/director.entity';
 import { Genre } from 'src/genre/entities/genre.entity';
-import { GetMoviesDto } from './dto/get-movies.dto';
+import { GetMoviesPageDto } from './dto/get-movies.dto';
 import { CommonService } from 'src/common/Common.service';
-import { NotFoundFilter } from 'src/common/filter/notfound.filter';
+import { join } from 'path';
 
 @Injectable()
 export class MovieService {
@@ -35,7 +35,7 @@ export class MovieService {
 
     private readonly commonService: CommonService,
     private readonly dataSource: DataSource,
-  ) {}
+  ) { }
 
   async findAll(title?: string) {
     const qb = await this.movieRepository
@@ -53,7 +53,7 @@ export class MovieService {
     return { result, total };
   }
 
-  async findAllWithPagination(dto: GetMoviesDto) {
+  async findAllWithPagination(dto: GetMoviesPageDto) {
     const { title } = dto;
 
     const qb = await this.movieRepository
@@ -99,7 +99,7 @@ export class MovieService {
     // return movie;
   }
 
-  async createMovie(createMovieDto: CreateMovieDto, qr: QueryRunner) {
+  async createMovie(createMovieDto: CreateMovieDto, userId: number, qr: QueryRunner) {
     const director = await qr.manager.findOne(Director, {
       where: {
         id: createMovieDto.directorId,
@@ -116,14 +116,23 @@ export class MovieService {
       },
     });
 
-    const newMovie = await qr.manager.save(Movie, {
-      title: createMovieDto.title,
-      movieDetail: {
-        detail: createMovieDto.movieDetail,
-      },
-      director: director,
-      genres: genres,
-    });
+    const filePath = join('public', 'movie');
+    const newMovie = await qr.manager.createQueryBuilder()
+      .insert()
+      .into(Movie)
+      .values({
+        title: createMovieDto.title,
+        movieDetail: {
+          detail: createMovieDto.movieDetail,
+        },
+        director: director,
+        genres: genres,
+        creator: {
+          id: userId,
+        },
+        fileName: join(filePath, createMovieDto.fileName),
+      })
+      .execute();
 
     return newMovie;
   }

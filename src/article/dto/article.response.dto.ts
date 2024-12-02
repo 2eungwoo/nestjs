@@ -12,7 +12,7 @@ export class ArticleResponseDto {
     @Expose() updatedAt: Date;
     @Expose() comments: CommentResponseDto[];
     @Expose() page: number;
-    @exports() size: number;
+    @Expose() size: number;
 
     constructor(article: Article, comments?: CommentResponseDto[], pagination?: PagePaginationDto) {
         if (article) {

@@ -17,13 +17,16 @@ import {
 import { MovieService } from './movie.service';
 import { MovieTitleValidationPipe } from './pipe/movie-title-validation';
 import { CustomPublicDecorator } from 'src/auth/decorator/public.decorator';
-import { GetMoviesDto } from './dto/get-movies.dto';
+import { GetMoviesPageDto } from './dto/get-movies.dto';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { CacheInterceptor } from 'src/common/interceptor/cach-interceptor';
 import { TransactionInterceptor } from 'src/common/interceptor/transaction-interceptor';
 import { CustomRBAC } from 'src/auth/decorator/rabc.decorator';
 import { Role } from 'src/users/entities/user.entity';
 import { FileFieldsInterceptor, FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { UserId } from 'src/users/decorator/user-id.decorator';
+import { QueryRunnerDecorator } from 'src/common/decorator/query-runner.decorator';
+import { QueryRunner } from 'typeorm';
 
 @Controller('movie')
 export class MovieController {
@@ -40,14 +43,14 @@ export class MovieController {
   }
 
   @Get('/pagination')
-  getMovieWithPagination(@Query() dto: GetMoviesDto) {
+  getMovieWithPagination(@Query() dto: GetMoviesPageDto) {
     return this.movieService.findAllWithPagination(dto);
   }
 
   @Post()
   @UseInterceptors(TransactionInterceptor)
-  createMovie(@Body() dto: CreateMovieDto, @Request() req) {
-    return this.movieService.createMovie(dto, req.queryRunner);
+  createMovie(@Body() dto: CreateMovieDto, @UserId() userId: number, @Request() req) {
+    return this.movieService.createMovie(dto, userId, req.queryRunner);
   }
 
   @Delete(':id')
@@ -56,41 +59,21 @@ export class MovieController {
     return this.movieService.deleteMovie(id);
   }
 
+
+  // common에서 파일 업로드를 다뤄주고 있으므로
+  // movie 컨텐츠를 생성하는 엔드포인트에서는
+  // createMovieDto에서는 파일 이름만 가지고 temp -> persist로 저장을 바꿔주면 된다.
   @Post()
   @CustomRBAC(Role.admin)
   @UseInterceptors(TransactionInterceptor)
-  @UseInterceptors(FileFieldsInterceptor([
-    {
-      name: 'movies',
-      maxCount: 3,
-    },
-    {
-      name: 'posters',
-      maxCount: 3,
-    }
-  ], {
-    limits: {
-      fileSize: 200000,
-    },
-    fileFilter(req, file, callback) {
-      console.log(file); // mimetype으로 파일 타입을 필터링해줄 수 있다.
-      if (file.mimetype !== 'video/mp4') {
-        return callback(new BadRequestException('mp4 파일만 업로드 가능'), false);
-      }
-      return callback(null, true);
-      // null 자리에 에러를 넣어주면 에러가 있을 때 자동으로 에러를 넘겨준다.
-      // 두번째 인자에 false를 하면 파일을 안받는다. true로 해야 파일을 받는다.
-    }
-  }
-  ))
   postMovie(
-    @Body() body: CreateMovieDto,
+    @Body() createMovieDto: CreateMovieDto,
     @Request() req,
-    @UploadedFiles() files: {
-      movie?: Express.Multer.File[],
-      poster?: Express.Multer.File[]
-    }) {
-    console.log(files);
-    return this.movieService.createMovie(body, req.queryRunner);
+    @QueryRunnerDecorator() queryRunner: QueryRunner,
+    @UserId() userId: number,
+  ) {
+    console.log(`@Body(): : ${createMovieDto}`);
+    console.log(`@Request(): req.body.createMovieDto : ${req.body.createMovieDto}`);
+    return this.movieService.createMovie(createMovieDto, userId, queryRunner);
   }
 }

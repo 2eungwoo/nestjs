@@ -5,16 +5,13 @@ import { CustomPublicDecorator } from '../decorator/public.decorator';
 
 @Injectable()
 export class CustomAuthGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector) {}
+  constructor(private readonly reflector: Reflector) { }
 
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     // 만약에 CustomPublic 데코레이터 적용했으면 모든 로직을 통과시키도록 하자
-    const isPublicAnnotated = this.reflector.get(
-      CustomPublicDecorator,
-      context.getHandler(),
-    );
+    const isPublicAnnotated = this.reflector.get(CustomPublicDecorator, context.getHandler());
     // console.log(isPublicAnnotated); -> 커스텀 데코레이터 파라미터에 넣은 값이 출력됨
     // ex) customDeco('test') -> test
     // 값을 아무것도 안넣음 or 데코레이터 안달아주면 console.log는 undefined가 나올거임

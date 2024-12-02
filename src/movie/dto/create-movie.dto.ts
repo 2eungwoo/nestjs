@@ -5,6 +5,7 @@ import {
   IsEmpty,
   IsNotEmpty,
   IsNumber,
+  IsString,
 } from 'class-validator';
 
 export class CreateMovieDto {
@@ -26,4 +27,7 @@ export class CreateMovieDto {
   @IsNotEmpty()
   @Type(() => Number)
   directorId: number;
+
+  @IsString()
+  fileName: string;
 }

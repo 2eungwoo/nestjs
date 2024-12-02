@@ -32,6 +32,7 @@ import { CommentModule } from './comment/comment.module';
 import { Article } from './article/entities/article.entity';
 import { Comment } from './comment/entities/comment.entity';
 import { UnauthorizedFilter } from './common/filter/unauthorized.filter';
+import { MovieUserLike } from './movie/entities/movie-user-likes.entity';
 
 @Module({
   imports: [
@@ -68,6 +69,7 @@ import { UnauthorizedFilter } from './common/filter/unauthorized.filter';
             User,
             Article,
             Comment,
+            MovieUserLike,
           ],
           synchronize: true, // 개발할때만 true. 개발 시 싱크 자동 맞추기
         };
