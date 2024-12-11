@@ -17,6 +17,8 @@ import { Genre } from 'src/genre/entities/genre.entity';
 import { GetMoviesPageDto } from './dto/get-movies.dto';
 import { CommonService } from 'src/common/Common.service';
 import { join } from 'path';
+import { User } from 'src/users/entities/user.entity';
+import { MovieUserLike } from './entities/movie-user-likes.entity';
 
 @Injectable()
 export class MovieService {
@@ -32,6 +34,12 @@ export class MovieService {
 
     @InjectRepository(Genre)
     private readonly genreRepository: Repository<Genre>,
+
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+
+    @InjectRepository(MovieUserLike)
+    private readonly movieUserLikeRepository: Repository<MovieUserLike>,
 
     private readonly commonService: CommonService,
     private readonly dataSource: DataSource,
@@ -207,5 +215,72 @@ export class MovieService {
     await this.movieRepository.delete(id);
     await this.movieDetailRepository.delete(targetMovie.movieDetail.id);
     return id;
+  }
+
+
+
+  async toggleMovieLike(movieId: number, userId: number, isLike: boolean) {
+    const movie = await this.movieRepository.findOne({
+      where: {
+        id: movieId
+      }
+    });
+
+    if (!movie) {
+      throw new NotFoundException('movie not found');
+    }
+
+    const user = await this.userRepository.findOne({
+      where: {
+        id: userId
+      }
+    });
+
+    if (!user) {
+      throw new NotFoundException('user not found');
+    }
+
+    const likeRecord = await this.movieUserLikeRepository.createQueryBuilder('mul')
+      .leftJoinAndSelect('mul.movie', 'movie')
+      .leftJoinAndSelect('mul.user', 'user')
+      .where('movie.id =:movieId', { movieId })
+      .andWhere('user.id =:userId', { userId })
+      .getOne();
+
+
+    if (likeRecord) {
+      if (likeRecord.isLike === isLike) { // 이미 존재하는 상태와 같으면 좋아요든 싫어요든 취소하게 하는 로직(삭제)
+        await this.movieUserLikeRepository.delete({
+          movie,
+          user,
+        });
+      } else {
+        await this.movieUserLikeRepository.update({
+          movie,
+          user,
+        }, {
+          isLike: isLike,
+        }
+        );
+      }
+    } else {
+      await this.movieUserLikeRepository.save({
+        movie,
+        user,
+        isLike
+      });
+    }
+
+    const result = await this.movieUserLikeRepository.createQueryBuilder('mul')
+      .leftJoinAndSelect('mul.movie', 'movie')
+      .leftJoinAndSelect('mul.user', 'user')
+      .where('movie.id =:movieId', { movieId })
+      .andWhere('user.id =:userId', { userId })
+      .getOne();
+
+
+    return {
+      isLike: result && result.isLike
+    }
   }
 }

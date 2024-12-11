@@ -76,4 +76,14 @@ export class MovieController {
     console.log(`@Request(): req.body.createMovieDto : ${req.body.createMovieDto}`);
     return this.movieService.createMovie(createMovieDto, userId, queryRunner);
   }
+
+  @Post(':movieId/like')
+  async createMovieLike(@Param('movieId', ParseIntPipe) movieId: number, @UserId() userId: number) {
+    return await this.movieService.toggleMovieLike(movieId, userId, true);
+  }
+
+  @Post(':movieId/dislike')
+  async createMovieDislike(@Param('movieId', ParseIntPipe) movieId: number, @UserId() userId: number) {
+    return await this.movieService.toggleMovieLike(movieId, userId, false);
+  }
 }
